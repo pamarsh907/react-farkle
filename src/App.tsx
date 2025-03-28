@@ -16,11 +16,16 @@ interface RollButtonProps {
 
 function App() {
 
-  const [turn, setTurn] = useState(1);
+  const [turn, setTurn] = useState(0);
   const [dice, setDice] = useState([0,0,0,0,0,0]);
   const [saveDice, setSaveDice] = useState([false, false, false, false, false, false]);// there has got to be a better syntax for this
+  const [lockTurn, setLockTurn] = useState([0, 0, 0, 0, 0, 0]); //this can't be right LOL
   
-  
+  //how do i prevent unlocking dice on a later turn?
+  //do i do a check with the turn count?
+  // If a dice is locked and the turn count is greater than the turn it was locked on it can't change
+  // but how do we record the turn locked on with the dice
+
   function rollDice(){
     var diceArray: Array<number> = [...dice]
     for (let i = 0; i < 6; i++) {
@@ -37,17 +42,26 @@ function App() {
   }
 
   function toggleDie(die: number){
-    console.log("LOCKING DIE")
+
     //do spread copy of saveDice
     var lockedDice = [...saveDice];
 
-    //update the index of die
-    //ONLY ALLOW IF IT HASN'T BEEN USED IN A TURN ALREADY
-    lockedDice[die] = !lockedDice[die]
+    //do spread of locked turn
+    var lockedTurn = [...lockTurn];
 
-    console.log("LOCKED DICE: " + lockedDice)
-    //set save dice with copy
-    setSaveDice(lockedDice)
+    //IF dice is NOT LOCKED or dice is LOCKED AND Locked TURN is equal or greater to than current turn
+    if(!lockedDice[die] || (lockedDice[die] && lockTurn[die] == turn)){
+      lockedDice[die] = !lockedDice[die]
+      console.log("LOCKED DICE: " + lockedDice)
+
+      lockedTurn[die] = turn;
+      console.log("LOCKED TURN: " + lockedTurn)
+
+      setSaveDice(lockedDice)
+      setLockTurn(lockedTurn)
+    } else {
+      console.log("You're gonna carry that weight")
+    }
   }
 
   function getRandomInt(max: number) {
