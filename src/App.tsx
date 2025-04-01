@@ -33,7 +33,7 @@ function App() {
     var newRoll: Array<number> = []
     for (let i = 0; i < 6; i++) {
       if(!turnLockedDice[i]){
-        diceArray[i] = getRandomInt(7)
+        diceArray[i] = randomIntFromInterval(1, 6);
         newRoll.push(diceArray[i])
       }
     }
@@ -42,7 +42,7 @@ function App() {
     //make this into a farkle check function
     //this should also increment the turn score
     //end turn will then add the turn score to the total score
-    if(!newRoll.includes(1 | 5)){
+    if((!newRoll.includes(1)) && (!newRoll.includes(5))){
       setFarkle(true)
     }
 
@@ -57,7 +57,7 @@ function App() {
   }
 
   function checkForFarkle(roll: Array<number>){
-    
+
   }
 
   function toggleDie(die: number){
@@ -127,9 +127,11 @@ function App() {
     return
   }
 
-  function getRandomInt(max: number) {
-    return Math.floor(Math.random() * max);
+  function randomIntFromInterval(min: number, max: number) { 
+    return Math.floor(Math.random() * (max - min + 1) + min);
   }
+  
+  
 
   return (
     <>
