@@ -30,49 +30,122 @@ function App() {
   const [showRollButton, setShowRollButton] = useState(true);
   const [farkle, setFarkle] = useState(false);
 
+  function getSelectedDice(){
+    var selectedDice = Array<number>(6);
+    rollLockedDice.forEach((value, index) => {
+      if(value) {
+        console.log("getSelectedDice: " )
+        selectedDice.push(dice[index])
+
+      }
+    })
+    selectedDice = selectedDice.filter(function( element ) {
+      return element !== undefined;
+   });
+   return selectedDice
+  }
 
   function rollDice(){
-    var diceArray: Array<number> = [...dice]
-    var newRoll: Array<number> = []
-    if(!turnLockedDice.includes(false)){
-      for (let i = 0; i < 6; i++) {
-          diceArray[i] = randomIntFromInterval(1, 6);
-          newRoll.push(diceArray[i])
-      }
-      setTurnLockedDice(Array(6).fill(false))
-    } else {
-      for (let i = 0; i < 6; i++) {
-        if(!turnLockedDice[i]){
-          diceArray[i] = randomIntFromInterval(1, 6);
-          newRoll.push(diceArray[i])
+    if(validateLockedDice()) {
+      var diceArray: Array<number> = [...dice]
+      var newRoll: Array<number> = []
+      if(!turnLockedDice.includes(false)){
+        for (let i = 0; i < 6; i++) {
+            diceArray[i] = randomIntFromInterval(1, 6);
+            newRoll.push(diceArray[i])
+        }
+        setTurnLockedDice(Array(6).fill(false))
+      } else {
+        for (let i = 0; i < 6; i++) {
+          if(!turnLockedDice[i]){
+            diceArray[i] = randomIntFromInterval(1, 6);
+            newRoll.push(diceArray[i])
+          }
         }
       }
-    }
-
-    if(checkForFarkle(newRoll)){
-      setRollScore(0)
-      setTurnScore(0)
-      console.log("farkle! set show turn button to true")
-      setShowTurnButton(true)
-      setShowRollButton(false)
-      
-    } else {
-      setTurnScore(turnScore + rollScore)
+  
+      if(checkForFarkle(newRoll)){
+        setRollScore(0)
+        setTurnScore(0)
+        console.log("farkle! set show turn button to true")
+        setShowTurnButton(true)
+        setShowRollButton(false)
+        
+      } else {
+        setTurnScore(turnScore + rollScore)
+        setRollLockedDice(Array(6).fill(false))
+    
+        setShowRollButton(false)
+        setShowTurnButton(false)
+        setRollScore(0)
+      }
       setRoll(roll + 1)
       setDice(diceArray)
-      setRollLockedDice(Array(6).fill(false))
-  
-      setShowRollButton(false)
-      setShowTurnButton(false)
-      setRollScore(0)
+    } else {
+      console.log("INVALID SELECTED DICE YOU MAY NOT ROLL, on roll")
     }
+    
+
+  }
+
+  function validateLockedDice(){
+    var selectedDice = getSelectedDice()
+    console.log("selected dice in validator " + selectedDice)
+
+    console.log("running validator")
+    var numOfDicePerValue = getCountOfRolledValues(selectedDice)
+    console.log("number of dice per value: " + numOfDicePerValue)
+    var validChoice = false;
+
+    switch(true){
+      case (numOfDicePerValue.toString() == [0,0,0,0,0,0].toString()):
+        console.log("all zero")
+        validChoice = true
+        break
+      case numOfDicePerValue.includes(6):
+        console.log("6 of a kind")
+        validChoice = true
+        break
+      case (numOfDicePerValue.includes(5) && (numOfDicePerValue[1] == 0) && (numOfDicePerValue[2] == 0) && (numOfDicePerValue[3] == 0) && (numOfDicePerValue[5]) == 0):
+        console.log("5 of a kind")
+        validChoice = true
+        break
+      case countOccurrences(numOfDicePerValue, 3) == 2:
+        console.log("2 triples")
+        validChoice = true
+        break
+      case countOccurrences(numOfDicePerValue, 2) == 3:
+        console.log("3 doubles")
+        validChoice = true
+        break
+      case [2,4].every(i => numOfDicePerValue.includes(i)):
+        console.log("pair of 2 and set of 4")
+        validChoice = true
+        break
+      case numOfDicePerValue.toString() == [1,1,1,1,1,1].toString():
+        console.log("straight")
+        validChoice = true
+        break
+      case ((countOccurrences(numOfDicePerValue, 3) == 1) && (numOfDicePerValue[1] == 0) && (numOfDicePerValue[2] == 0) && (numOfDicePerValue[3] == 0) && (numOfDicePerValue[5]) == 0):
+        console.log("triple plus valid extras")
+        validChoice = true
+        break
+      //if roll has 1 or 5 and Nothing else, valid
+      case ((numOfDicePerValue[0] > 0) || (numOfDicePerValue[4] > 0)) && (numOfDicePerValue[1] == 0) && (numOfDicePerValue[2] == 0) && (numOfDicePerValue[3] == 0) && (numOfDicePerValue[5] == 0):
+        console.log("1 or 5 valid")
+        validChoice = true
+        break
+      default:
+        console.log("invalid choice")
+    }
+
+    console.log("validChoice: " + validChoice)
+    return validChoice
   }
 
   function checkForFarkle(roll: Array<number>){
-    var rollscore = calculateRollScore(roll);
-    console.log("calculate roll score in check for farkle: " + rollscore)
-    //console.log("check for farkle: what is roll score: " + rollscore)
-    //console.log("turnscore - rollscore: " + (turnScore - rollscore))
+    var rollscore = calculateRollScore(roll)
+
     if(rollscore == 0){
       setFarkle(true)
       return true
@@ -80,20 +153,13 @@ function App() {
     return false
   }
 
-
-
   function countOccurrences(arr:Array<any>, val:any){
     return arr.reduce((a:any, v:any) => (v === val ? a + 1 : a), 0);
   }
-  
 
-  function calculateRollScore(roll: Array<number>){
-    //console.log("calculating roll score, base points: " + turnScore)
-    var points = 0
-
-    //console.log("roll value before calculating dice per value: "+ roll)
+  function getCountOfRolledValues(roll: Array<number>){
     var numOfDicePerValue: Array<number> = Array(6).fill(0)
-    //there must be a better way to do this...
+
     roll.forEach(r => {
       switch (r) {
         case 1: 
@@ -118,8 +184,14 @@ function App() {
           console.log("wtf")
       }
     })
-
-    //console.log("dice per value: " + numOfDicePerValue)
+    return numOfDicePerValue
+  }
+  
+  function calculateRollScore(roll: Array<number>){
+    //console.log("calculating roll score, base points: " + turnScore)
+    var points = 0
+    //console.log("roll value before calculating dice per value: "+ roll)
+    var numOfDicePerValue = getCountOfRolledValues(roll)
 
     switch (true) {
       case numOfDicePerValue.includes(6):
@@ -170,31 +242,11 @@ function App() {
       default:
         console.log("1 or 5")
         points+=(numOfDicePerValue[0]*100)+(numOfDicePerValue[4]*50)
-    }
-
-    //maybe a recursive function that
-
-    // Single 1 = 100
-    // Single 5 = 50
-    // Three 1s = 300
-    // Three 2s = 200
-    // Three 3s = 300
-    // Three 4s = 400
-    // Three 5s = 500
-    // Three 6s = 600 
-    // Four of any number = 1,000 X
-    // Five of any number = 2,000 X
-    // Six of any number = 3,000 X
-    // 1–6 straight = 1,500 X
-    // Three pairs = 1,500: do three pairs before 4 of a kind  X
-    // Four of any number with a pair = 1,500 X
-    // Two triplets = 2,500 X
-    
+    }    
     return points
   }
 
   function toggleDie(die: number){
-
     //do spread copy of current turn save dice
     var rollLockDice = [...rollLockedDice]
 
@@ -225,12 +277,8 @@ function App() {
         }
       }
 
-      console.log("on toggle dice, scoring dice used to calculate score: " + scoringDice)
       var rollScore = calculateRollScore(scoringDice)
-      console.log("on toggle dice, rollscore: " + rollScore)
-      console.log("roll score plus turn score: RS->" +  rollScore + " + TS=>" + turnScore)
       
-      //rollScore+=turnScore
       setRollScore(rollScore)
 
       if(rollLockDice.includes(true)) {
@@ -243,31 +291,30 @@ function App() {
       setTurnLockedDice(lockedDice)
       setRollLockedDice(rollLockDice)
       setLockRoll(lockedRoll)
-
-
     } else {
       console.log("You're gonna carry that weight")
     }
   }
 
   function endTurn() {
-    // this should just check IF you are able to end you're turn, then update turn count
-    setTurn(turn + 1)
+    if(validateLockedDice()){
+      setTurn(turn + 1)
 
-    //This should be add points from turnPoints to total points
-
-
-    setScore(score + turnScore + rollScore)
-    setTurnLockedDice(Array(6).fill(false))
-    setRollLockedDice(Array(6).fill(false))
-    setRoll(0)
-    setDice(Array(6).fill(0))
-
-    setShowRollButton(true)
-    setShowTurnButton(false)
-    setTurnScore(0)
-    setRollScore(0)
-    setFarkle(false)
+      setScore(score + turnScore + rollScore)
+      setTurnLockedDice(Array(6).fill(false))
+      setRollLockedDice(Array(6).fill(false))
+      setRoll(0)
+      setDice(Array(6).fill(0))
+  
+      setShowRollButton(true)
+      setShowTurnButton(false)
+      setTurnScore(0)
+      setRollScore(0)
+      setFarkle(false)
+    } else {
+      console.log("INVALID DICE YOU CANNOT END TURN")
+    }
+  
     return
   }
 
@@ -275,8 +322,6 @@ function App() {
     return Math.floor(Math.random() * (max - min + 1) + min);
   }
   
-  
-
   return (
     <>
     <h1>Turn {turn}</h1>
@@ -284,8 +329,6 @@ function App() {
     <h3>Roll Score {rollScore} + Turn Score {turnScore} = {turnScore + rollScore}</h3>
     
     <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'center'}}>
-
-      
       <div><Dice value={dice[0]} onDiceClick={() => toggleDie(0)} locked={turnLockedDice[0]} lockedTurn={lockRoll[0]}/></div>
       <div><Dice value={dice[1]} onDiceClick={() => toggleDie(1)} locked={turnLockedDice[1]} lockedTurn={lockRoll[1]}/></div>
       <div><Dice value={dice[2]} onDiceClick={() => toggleDie(2)} locked={turnLockedDice[2]} lockedTurn={lockRoll[2]}/></div>
@@ -294,11 +337,9 @@ function App() {
       <div><Dice value={dice[5]} onDiceClick={() => toggleDie(5)} locked={turnLockedDice[5]} lockedTurn={lockRoll[5]}/></div>
     </div>
 
-    
     {showRollButton && <RollButton onClick={rollDice}/>}
     {showTurnButton && <EndTurnButton onClick={endTurn}/>}
     {farkle && <div>FARKLE!!!</div>}
-  
     </>
   )
 }
