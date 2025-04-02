@@ -34,17 +34,21 @@ function App() {
   function rollDice(){
     var diceArray: Array<number> = [...dice]
     var newRoll: Array<number> = []
-    for (let i = 0; i < 6; i++) {
-      if(!turnLockedDice[i]){
-        diceArray[i] = randomIntFromInterval(1, 6);
-        newRoll.push(diceArray[i])
+    if(!turnLockedDice.includes(false)){
+      for (let i = 0; i < 6; i++) {
+          diceArray[i] = randomIntFromInterval(1, 6);
+          newRoll.push(diceArray[i])
+      }
+      setTurnLockedDice(Array(6).fill(false))
+    } else {
+      for (let i = 0; i < 6; i++) {
+        if(!turnLockedDice[i]){
+          diceArray[i] = randomIntFromInterval(1, 6);
+          newRoll.push(diceArray[i])
+        }
       }
     }
-    //console.log("ROLL: " + diceArray)
 
-    //make this into a farkle check function
-    //this should also increment the turn score
-    //end turn will then add the turn score to the total score
     if(checkForFarkle(newRoll)){
       setRollScore(0)
       setTurnScore(0)
@@ -302,6 +306,8 @@ function App() {
 
 
 function Dice( props: DiceProps ) {
+
+  //make this some type of calculation based on roll number, so it keeps cycling through the colors
   const rollOneLockColor = 'rgba(229, 22, 22, 0.64)'
   const rollTwoLockColor = 'rgba(21, 55, 189, 0.64)'
   const rollThreeLockColor = 'rgba(16, 168, 49, 0.64)'
