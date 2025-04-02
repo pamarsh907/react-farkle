@@ -45,19 +45,23 @@ function App() {
     //make this into a farkle check function
     //this should also increment the turn score
     //end turn will then add the turn score to the total score
-    checkForFarkle(newRoll)
-
-
-    //do spread operator and only copy over non locked dice
-    setTurnScore(turnScore + rollScore)
-    setRoll(roll + 1)
-    setDice(diceArray)
-    setRollLockedDice(Array(6).fill(false))
-
-    setShowRollButton(false)
-    setShowTurnButton(false)
-    setRollScore(0)
-    return 
+    if(checkForFarkle(newRoll)){
+      setRollScore(0)
+      setTurnScore(0)
+      console.log("farkle! set show turn button to true")
+      setShowTurnButton(true)
+      setShowRollButton(false)
+      
+    } else {
+      setTurnScore(turnScore + rollScore)
+      setRoll(roll + 1)
+      setDice(diceArray)
+      setRollLockedDice(Array(6).fill(false))
+  
+      setShowRollButton(false)
+      setShowTurnButton(false)
+      setRollScore(0)
+    }
   }
 
   function checkForFarkle(roll: Array<number>){
@@ -67,7 +71,9 @@ function App() {
     //console.log("turnscore - rollscore: " + (turnScore - rollscore))
     if(rollscore == 0){
       setFarkle(true)
+      return true
     }
+    return false
   }
 
 
@@ -257,6 +263,7 @@ function App() {
     setShowTurnButton(false)
     setTurnScore(0)
     setRollScore(0)
+    setFarkle(false)
     return
   }
 
